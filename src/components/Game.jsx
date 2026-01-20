@@ -21,16 +21,16 @@ ctx.fillRect(x,y,32,32);
 
     const keyDownHandler=(e)=>{
       if(e.key === 'ArrowRight'){
-        xRef.current += 16;
+        xRef.current += 15;
       }
       if(e.key === 'ArrowLeft'){
-        xRef.current -= 16;
+        xRef.current -= 15;
       }
       if(e.key === 'ArrowUp'){
-        yRef.current -= 16;
+        yRef.current -= 15;
       }
       if(e.key === 'ArrowDown'){
-        yRef.current += 16;
+        yRef.current += 15;
       }
       drawCat(ctx, xRef.current, yRef.current);
     }
