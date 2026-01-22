@@ -29,17 +29,41 @@ export default function Game() {
     ctx.fillRect(0, floorY, W, H - floorY);
   };
 
-  const bookShelf = (ctx) => {
+  const bookShelf1 = (ctx) => {
     const W = ctx.canvas.width;
     const H = ctx.canvas.height;
     const floorY = Math.floor(H * 0.66);
-    const shelfW = Math.floor(W * 0.5);
+const shelfW = Math.floor(W * 0.2);
     const shelfH = Math.max(8, Math.floor(H * 0.015));
     const x = Math.floor((W - shelfW) / 2);
-    const y = Math.max(20, floorY - 80);
+const y = Math.max(20, floorY - 90);
     ctx.fillStyle = 'yellow';
     ctx.fillRect(x, y, shelfW, shelfH);
   };
+
+    const bookShelf2 = (ctx) => {
+      const W = ctx.canvas.width;
+    const H = ctx.canvas.height;
+    const floorY = Math.floor(H * 0.66);
+const shelfW = Math.floor(W * 0.4);
+    const shelfH = Math.max(8, Math.floor(H * 0.015));
+const x = Math.floor((W - shelfW) / 2 + 100);
+const y = Math.max(20, floorY - 180);
+ctx.fillStyle = 'yellow';
+    ctx.fillRect(x, y, shelfW, shelfH);
+  };
+
+  const bookShelf3 = (ctx) => {
+    const W = ctx.canvas.width;
+  const H = ctx.canvas.height;
+  const floorY = Math.floor(H * 0.66);
+const shelfW = Math.floor(W * 0.1);
+  const shelfH = Math.max(8, Math.floor(H * 0.015));
+const x = Math.floor((W - shelfW) / 5 - 100);
+const y = Math.max(20, floorY - 180);
+ctx.fillStyle = 'yellow';
+  ctx.fillRect(x, y, shelfW, shelfH);
+};
 
   const drawPot = (ctx, x, y, s) => {
     const w = s * 0.8;
@@ -57,7 +81,68 @@ export default function Game() {
     ctx.arc(x + s * 0.6, py - 5, 3, 0, Math.PI * 2);
     ctx.fill();
   };
-
+  const drawClock = (ctx) => {
+const x = 80; // Pozycja X środka zegara
+const y = 80; // Pozycja Y środka zegara
+const radius = 30;
+  
+    // 1. Uszka (kawaii touch!)
+    ctx.fillStyle = '#FFB7D5'; // Pastelowy różowy
+    ctx.beginPath();
+ctx.arc(x - 24, y - 35, 15, 0, Math.PI * 2);
+ctx.arc(x + 24, y - 35, 15, 0, Math.PI * 2);
+    ctx.fill();
+  
+    // 2. Główna tarcza zegara
+    ctx.shadowBlur = 10;
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.1)';
+    ctx.fillStyle = '#F3E5F5'; // Bardzo jasny pastelowy fiolet
+    ctx.beginPath();
+    ctx.arc(x, y, radius, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.shadowBlur = 0; // Reset cienia
+  
+    // 3. Obramowanie tarczy
+    ctx.strokeStyle = '#D1C4E9'; // Ciemniejszy pastelowy fiolet
+    ctx.lineWidth = 4;
+    ctx.stroke();
+  
+    // 4. Kropki zamiast cyfr (dla minimalistycznego stylu kawaii)
+    ctx.fillStyle = '#9575CD';
+    for (let i = 0; i < 12; i++) {
+      const angle = (i * Math.PI) / 6;
+      const dotX = x + Math.cos(angle) * (radius - 10);
+      const dotY = y + Math.sin(angle) * (radius - 10);
+      ctx.beginPath();
+      ctx.arc(dotX, dotY, 2, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  
+    // 5. Wskazówki
+    ctx.lineCap = 'round';
+    
+    // Godzinowa (krótka)
+    ctx.strokeStyle = '#FF80AB'; // Intensywniejszy pastelowy róż
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+    ctx.lineTo(x + 15, y + 10);
+    ctx.stroke();
+  
+    // Minutowa (długa)
+    ctx.strokeStyle = '#9575CD';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+    ctx.lineTo(x, y - 25);
+    ctx.stroke();
+  
+    // 6. Środek zegara (nosek)
+    ctx.fillStyle = 'white';
+    ctx.beginPath();
+    ctx.arc(x, y, 3, 0, Math.PI * 2);
+    ctx.fill();
+  };
   const drawPlayerCat = (ctx, x, y) => {
     ctx.fillStyle = '#ffd6e8';
     ctx.fillRect(x + 6, y + 14, 20, 14);
@@ -89,7 +174,10 @@ export default function Game() {
   const drawCat = useCallback((ctx, x, y) => {
     const t = targetRef.current;
     drawRoom(ctx);
-    bookShelf(ctx);
+    bookShelf1(ctx);
+    bookShelf2(ctx);
+    bookShelf3(ctx);
+drawClock(ctx);
     drawPot(ctx, t.x, t.y, t.size);
     drawPlayerCat(ctx, x, y);
   }, []);
