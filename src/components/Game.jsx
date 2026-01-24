@@ -22,10 +22,10 @@ export default function Game() {
     ctx.fillStyle = wall;
     ctx.fillRect(0, 0, W, floorY - baseboardH);
 
-    ctx.fillStyle = 'yellow';
+    ctx.fillStyle = '#F9D75';
     ctx.fillRect(0, floorY - baseboardH, W, baseboardH);
 
-    ctx.fillStyle = '#D6C8E3';
+    ctx.fillStyle = '#F2CEC2';
     ctx.fillRect(0, floorY, W, H - floorY);
   };
 
@@ -37,7 +37,7 @@ const shelfW = Math.floor(W * 0.2);
     const shelfH = Math.max(8, Math.floor(H * 0.015));
     const x = Math.floor((W - shelfW) / 2);
 const y = Math.max(20, floorY - 90);
-    ctx.fillStyle = 'yellow';
+ctx.fillStyle = '#F4EBE5';
     ctx.fillRect(x, y, shelfW, shelfH);
   };
 
@@ -49,7 +49,7 @@ const shelfW = Math.floor(W * 0.4);
     const shelfH = Math.max(8, Math.floor(H * 0.015));
 const x = Math.floor((W - shelfW) / 2 + 100);
 const y = Math.max(20, floorY - 180);
-ctx.fillStyle = 'yellow';
+ctx.fillStyle = '#FDC6CB';
     ctx.fillRect(x, y, shelfW, shelfH);
   };
 
@@ -61,7 +61,7 @@ const shelfW = Math.floor(W * 0.1);
   const shelfH = Math.max(8, Math.floor(H * 0.015));
 const x = Math.floor((W - shelfW) / 5 - 100);
 const y = Math.max(20, floorY - 180);
-ctx.fillStyle = 'yellow';
+ctx.fillStyle = '#FDF2E9';
   ctx.fillRect(x, y, shelfW, shelfH);
 };
 
@@ -81,8 +81,102 @@ ctx.fillStyle = 'yellow';
     ctx.arc(x + s * 0.6, py - 5, 3, 0, Math.PI * 2);
     ctx.fill();
   };
-  const drawClock = (ctx) => {
-const x = 80; // Pozycja X środka zegara
+
+  const cactus = (ctx) => {
+    const W = ctx.canvas.width;
+    const H = ctx.canvas.height;
+    const floorY = Math.floor(H * 0.66);
+  
+    // === SKALA (mniejszy) ===
+    const bodyW = Math.floor(W * 0.06);
+    const bodyH = Math.floor(H * 0.12);
+  
+    //polozenie wzgledem lewego gornego rogu
+    const x = Math.floor(W * 0.08);
+    const y = floorY - bodyH - bodyH * 0.35;
+  
+    // === DONICZKA ===
+    const potH = bodyH * 0.35;
+    const potW = bodyW * 1.4;
+    const potX = x - (potW - bodyW) / 2;
+    const potY = floorY - potH;
+  
+    // dół doniczki
+    ctx.fillStyle = '#C68642';
+    ctx.beginPath();
+    ctx.roundRect(potX, potY, potW, potH, 8);
+    ctx.fill();
+  
+    // rant
+    ctx.fillStyle = '#D89B5A';
+    ctx.beginPath();
+    ctx.roundRect(
+      potX - potW * 0.05,
+      potY - potH * 0.3,
+      potW * 1.1,
+      potH * 0.35,
+      8
+    );
+    ctx.fill();
+  
+    // === CIAŁO KAKTUSA ===
+    ctx.fillStyle = '#4CAF50';
+    ctx.beginPath();
+    ctx.roundRect(x, y, bodyW, bodyH, bodyW / 2);
+    ctx.fill();
+  
+    // === RAMIONA ===
+    ctx.fillStyle = '#43A047';
+  
+    // lewe
+    ctx.beginPath();
+    ctx.roundRect(
+      x - bodyW * 0.3,
+      y + bodyH * 0.4,
+      bodyW * 0.35,
+      bodyH * 0.22,
+      bodyW * 0.2
+    );
+    ctx.fill();
+  
+    // prawe
+    ctx.beginPath();
+    ctx.roundRect(
+      x + bodyW * 0.95,
+      y + bodyH * 0.35,
+      bodyW * 0.35,
+      bodyH * 0.22,
+      bodyW * 0.2
+    );
+    ctx.fill();
+  
+    // === OCZKA ===
+    ctx.fillStyle = '#222';
+    const eyeY = y + bodyH * 0.45;
+  
+    ctx.beginPath();
+    ctx.arc(x + bodyW * 0.35, eyeY, bodyW * 0.055, 0, Math.PI * 2);
+    ctx.arc(x + bodyW * 0.65, eyeY, bodyW * 0.055, 0, Math.PI * 2);
+    ctx.fill();
+  
+    // === RUMIEŃCE ===
+    ctx.fillStyle = 'rgba(255, 160, 160, 0.6)';
+    ctx.beginPath();
+    ctx.arc(x + bodyW * 0.25, eyeY + bodyH * 0.08, bodyW * 0.07, 0, Math.PI * 2);
+    ctx.arc(x + bodyW * 0.75, eyeY + bodyH * 0.08, bodyW * 0.07, 0, Math.PI * 2);
+    ctx.fill();
+  
+    // === UŚMIECH ===
+    ctx.strokeStyle = '#222';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.arc(x + bodyW / 2, eyeY + bodyH * 0.05, bodyW * 0.12, 0, Math.PI);
+    ctx.stroke();
+  };
+  
+
+const drawClock = (ctx) => {
+const x = 580; // Pozycja X środka zegara
 const y = 80; // Pozycja Y środka zegara
 const radius = 30;
   
@@ -177,6 +271,7 @@ ctx.arc(x + 24, y - 35, 15, 0, Math.PI * 2);
     bookShelf1(ctx);
     bookShelf2(ctx);
     bookShelf3(ctx);
+    cactus(ctx);
 drawClock(ctx);
     drawPot(ctx, t.x, t.y, t.size);
     drawPlayerCat(ctx, x, y);
