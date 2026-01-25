@@ -10,23 +10,55 @@ export default function Game() {
   const targetRef = useRef({ x: 200, y: 120, size: 16 });
   const playerBodyRef = useRef(null);
 
+
+  const gameBoyBackground = (ctx) => {
+    const W = ctx.canvas.width;
+    const H = ctx.canvas.height;
+    const floorY = Math.floor(H * 0.66);
+    const baseboardH = Math.max(2, Math.floor(H * 0.006));
+    ctx.fillStyle = '#FDF2E9';
+    ctx.fillRect(0, floorY - baseboardH, W, baseboardH);
+  };
+
   const drawRoom = (ctx) => {
     const W = ctx.canvas.width;
     const H = ctx.canvas.height;
     const floorY = Math.floor(H * 0.66);
     const baseboardH = Math.max(2, Math.floor(H * 0.006));
 
+    // pastelowy gradient: róż → jasny błękit → lawenda/fiolet
     const wall = ctx.createLinearGradient(0, 0, 0, floorY - baseboardH);
-    wall.addColorStop(0, '#A3A1A6'); // szary u góry
-    wall.addColorStop(1, '#FFD6E8'); // róż na dole
+    wall.addColorStop(0,   '#FFD6E8'); // pink
+    wall.addColorStop(0.5, '#CDEAFB'); // baby blue
+    wall.addColorStop(1,   '#C39BFF'); // soft purple
     ctx.fillStyle = wall;
     ctx.fillRect(0, 0, W, floorY - baseboardH);
 
-    ctx.fillStyle = '#F9D75';
+    // listwa w jasnym kremie
+    ctx.fillStyle = '#FDF2E9';
     ctx.fillRect(0, floorY - baseboardH, W, baseboardH);
 
-    ctx.fillStyle = '#F2CEC2';
+    // podłoga – ciepły pastelowy róż/beż
+    ctx.fillStyle = '#ffeea8';
     ctx.fillRect(0, floorY, W, H - floorY);
+  };
+
+  // Rysuje „zabudowę” (ramkę) dookoła ekranu wewnątrz canvasa,
+  // tak by widoczny obszar gry był mniejszy – jak w ekranie urządzenia.
+  const drawBezel = (ctx) => {
+    const W = ctx.canvas.width;
+    const H = ctx.canvas.height;
+    // niezależne marginesy obudowy
+    const marginLeft = 65;
+    const marginRight = 65;
+    const marginTop = 65;
+    const marginBottom = 90; // większy dół
+    ctx.fillStyle = '#6ec6ff'; // kolor obudowy (niebieski)
+    // paski wokół „okna” ekranu
+    ctx.fillRect(0, 0, W, marginTop);                                    // góra
+    ctx.fillRect(0, H - marginBottom, W, marginBottom);                  // dół
+    ctx.fillRect(0, marginTop, marginLeft, H - marginTop - marginBottom); // lewo
+    ctx.fillRect(W - marginRight, marginTop, marginRight, H - marginTop - marginBottom); // prawo
   };
 
   const bookShelf1 = (ctx) => {
@@ -267,7 +299,9 @@ ctx.arc(x + 24, y - 35, 15, 0, Math.PI * 2);
 
   const drawCat = useCallback((ctx, x, y) => {
     const t = targetRef.current;
+    gameBoyBackground(ctx);
     drawRoom(ctx);
+    drawBezel(ctx); // „zabudowanie” – obudowa GameBoy w canvasie
     bookShelf1(ctx);
     bookShelf2(ctx);
     bookShelf3(ctx);
@@ -289,6 +323,13 @@ engine.gravity.y = 0; // brak grawitacji w pokoju
 // rozmiary canvasa
 const W = canvas.width;
 const H = canvas.height;
+// „okno” ekranu – mniejszy obszar gry wewnątrz obudowy (niezależne marginesy)
+const marginLeft = 65;
+const marginRight = 65;
+const marginTop = 65;
+const marginBottom = 90;
+const innerW = W - marginLeft - marginRight;
+const innerH = H - marginTop - marginBottom;
 
 // gracz (32x32), środek ciała w środku kwadratu
 const player = Bodies.rectangle(xRef.current + 16, yRef.current + 16, 32, 32, {
@@ -301,10 +342,14 @@ playerBodyRef.current = player;
 // ściany (statyczne)
 const thick = 50;
 const walls = [
-  Bodies.rectangle(W/2, -thick/2, W, thick, { isStatic: true }),         // top
-  Bodies.rectangle(W/2, H+thick/2, W, thick, { isStatic: true }),        // bottom
-  Bodies.rectangle(-thick/2, H/2, thick, H, { isStatic: true }),         // left
-  Bodies.rectangle(W+thick/2, H/2, thick, H, { isStatic: true })         // right
+  // górna krawędź okna
+  Bodies.rectangle(W / 2, marginTop - thick / 2, innerW, thick, { isStatic: true }),
+  // dolna krawędź okna
+  Bodies.rectangle(W / 2, H - marginBottom + thick / 2, innerW, thick, { isStatic: true }),
+  // lewa krawędź okna
+  Bodies.rectangle(marginLeft - thick / 2, H / 2, thick, innerH, { isStatic: true }),
+  // prawa krawędź okna
+  Bodies.rectangle(W - marginRight + thick / 2, H / 2, thick, innerH, { isStatic: true })
 ];
 
 Composite.clear(engine.world, false);
@@ -361,5 +406,11 @@ rafId = requestAnimationFrame(loop);
     };
   }, [drawCat]);
 
-  return <canvas ref={canvasRef} width={660} height={550} className="game-canvas" />;
+  return (
+    <div className="gameboy">
+      <div className="gb-screen">
+        <canvas ref={canvasRef} width={660} height={550} className="game-canvas" />
+      </div>
+    </div>
+  );
 }
