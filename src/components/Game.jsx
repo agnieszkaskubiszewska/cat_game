@@ -35,7 +35,7 @@ export default function Game() {
     ctx.fillRect(0, 0, W, floorY - baseboardH);
 
     // listwa w jasnym kremie
-    ctx.fillStyle = '#FDF2E9';
+ctx.fillStyle = '#E2CF88';
     ctx.fillRect(0, floorY - baseboardH, W, baseboardH);
 
     // podłoga – ciepły pastelowy róż/beż
@@ -43,23 +43,7 @@ export default function Game() {
     ctx.fillRect(0, floorY, W, H - floorY);
   };
 
-  // Rysuje „zabudowę” (ramkę) dookoła ekranu wewnątrz canvasa,
-  // tak by widoczny obszar gry był mniejszy – jak w ekranie urządzenia.
-  const drawBezel = (ctx) => {
-    const W = ctx.canvas.width;
-    const H = ctx.canvas.height;
-    // niezależne marginesy obudowy
-    const marginLeft = 65;
-    const marginRight = 65;
-    const marginTop = 65;
-    const marginBottom = 90; // większy dół
-    ctx.fillStyle = '#6ec6ff'; // kolor obudowy (niebieski)
-    // paski wokół „okna” ekranu
-    ctx.fillRect(0, 0, W, marginTop);                                    // góra
-    ctx.fillRect(0, H - marginBottom, W, marginBottom);                  // dół
-    ctx.fillRect(0, marginTop, marginLeft, H - marginTop - marginBottom); // lewo
-    ctx.fillRect(W - marginRight, marginTop, marginRight, H - marginTop - marginBottom); // prawo
-  };
+  // (usunięto wewnętrzną niebieską ramkę – rysujemy pełnoekranową scenę)
 
   const bookShelf1 = (ctx) => {
     const W = ctx.canvas.width;
@@ -301,7 +285,6 @@ ctx.arc(x + 24, y - 35, 15, 0, Math.PI * 2);
     const t = targetRef.current;
     gameBoyBackground(ctx);
     drawRoom(ctx);
-    drawBezel(ctx); // „zabudowanie” – obudowa GameBoy w canvasie
     bookShelf1(ctx);
     bookShelf2(ctx);
     bookShelf3(ctx);
@@ -323,13 +306,7 @@ engine.gravity.y = 0; // brak grawitacji w pokoju
 // rozmiary canvasa
 const W = canvas.width;
 const H = canvas.height;
-// „okno” ekranu – mniejszy obszar gry wewnątrz obudowy (niezależne marginesy)
-const marginLeft = 65;
-const marginRight = 65;
-const marginTop = 65;
-const marginBottom = 90;
-const innerW = W - marginLeft - marginRight;
-const innerH = H - marginTop - marginBottom;
+// pełny obszar gry – bez wewnętrznej ramki
 
 // gracz (32x32), środek ciała w środku kwadratu
 const player = Bodies.rectangle(xRef.current + 16, yRef.current + 16, 32, 32, {
@@ -339,17 +316,13 @@ const player = Bodies.rectangle(xRef.current + 16, yRef.current + 16, 32, 32, {
 });
 playerBodyRef.current = player;
 
-// ściany (statyczne)
+// ściany (statyczne) – na krawędziach canvasa
 const thick = 50;
 const walls = [
-  // górna krawędź okna
-  Bodies.rectangle(W / 2, marginTop - thick / 2, innerW, thick, { isStatic: true }),
-  // dolna krawędź okna
-  Bodies.rectangle(W / 2, H - marginBottom + thick / 2, innerW, thick, { isStatic: true }),
-  // lewa krawędź okna
-  Bodies.rectangle(marginLeft - thick / 2, H / 2, thick, innerH, { isStatic: true }),
-  // prawa krawędź okna
-  Bodies.rectangle(W - marginRight + thick / 2, H / 2, thick, innerH, { isStatic: true })
+  Bodies.rectangle(W/2, -thick/2, W, thick, { isStatic: true }),         // top
+  Bodies.rectangle(W/2, H+thick/2, W, thick, { isStatic: true }),        // bottom
+  Bodies.rectangle(-thick/2, H/2, thick, H, { isStatic: true }),         // left
+  Bodies.rectangle(W+thick/2, H/2, thick, H, { isStatic: true })         // right
 ];
 
 Composite.clear(engine.world, false);
