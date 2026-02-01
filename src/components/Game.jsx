@@ -1,5 +1,5 @@
 import { useRef, useEffect, useCallback } from "react";
-import { Engine, Bodies, Composite, Body } from 'matter-js';
+import { Engine, Bodies, Composite, Body, Events } from 'matter-js';
 
 export default function Game() {
 
@@ -7,8 +7,14 @@ export default function Game() {
 
   const xRef= useRef(50);
   const yRef = useRef(50);
-  const targetRef = useRef({ x: 200, y: 120, size: 16 });
   const playerBodyRef = useRef(null);
+  // Fizyczna doniczka zarządzana przez Matter.js
+  const potRef = useRef(null); // { body, size, tipped, tippedAt }
+  // Wynik i limit
+  const scoreRef = useRef(0);
+  const spawnedRef = useRef(0);
+  const endTimeRef = useRef(0);
+  const gameOverRef = useRef(false);
 
 
   const gameBoyBackground = (ctx) => {
@@ -282,7 +288,6 @@ ctx.arc(x + 24, y - 35, 15, 0, Math.PI * 2);
   };
 
   const drawCat = useCallback((ctx, x, y) => {
-    const t = targetRef.current;
     gameBoyBackground(ctx);
     drawRoom(ctx);
     bookShelf1(ctx);
@@ -290,18 +295,31 @@ ctx.arc(x + 24, y - 35, 15, 0, Math.PI * 2);
     bookShelf3(ctx);
     cactus(ctx);
 drawClock(ctx);
-    drawPot(ctx, t.x, t.y, t.size);
+    // Doniczka z fizyki (jeśli istnieje)
+    if (potRef.current?.body) {
+      const s = potRef.current.size;
+      const bx = potRef.current.body.position.x - s / 2;
+      const by = potRef.current.body.position.y - s / 2;
+      drawPot(ctx, bx, by, s);
+    }
     drawPlayerCat(ctx, x, y);
   }, []);
 
-  const overlaps = (ax, ay, as, bx, by, bs) =>
-    ax < bx + bs && ax + as > bx && ay < by + bs && ay + as > by;
+  // HUD: wynik i czas
+  const drawHud = (ctx, timeLeftMs) => {
+    ctx.fillStyle = '#333';
+    ctx.font = '16px system-ui, -apple-system, Segoe UI, Roboto';
+    ctx.textBaseline = 'top';
+    const secs = Math.max(0, Math.ceil(timeLeftMs / 1000));
+    ctx.fillText(`Score: ${scoreRef.current}/20`, 10, 8);
+    ctx.fillText(`Time: ${secs}s`, 10, 28);
+  };
 
   useEffect(() => {
     const canvas = canvasRef.current;
     const ctx = canvas.getContext('2d');
     const engine = Engine.create();
-engine.gravity.y = 0; // brak grawitacji w pokoju
+engine.gravity.y = 0; // grawitacja 0 – doniczka spada manualnie
 
 // rozmiary canvasa
 const W = canvas.width;
@@ -325,11 +343,83 @@ const walls = [
   Bodies.rectangle(W+thick/2, H/2, thick, H, { isStatic: true })         // right
 ];
 
+// półki jako ciała statyczne (dopasowane do rysunku)
+const floorY = Math.floor(H * 0.66);
+const shelfH = Math.max(8, Math.floor(H * 0.015));
+// shelf 1
+const s1W = Math.floor(W * 0.2);
+const s1X = Math.floor((W - s1W) / 2);
+const s1Y = Math.max(20, floorY - 90);
+// shelf 2
+const s2W = Math.floor(W * 0.4);
+const s2X = Math.floor((W - s2W) / 2 + 100);
+const s2Y = Math.max(20, floorY - 180);
+// shelf 3
+const s3W = Math.floor(W * 0.1);
+const s3X = Math.floor((W - s3W) / 5 - 100);
+const s3Y = Math.max(20, floorY - 180);
+
+const shelfBodies = [
+  Bodies.rectangle(s1X + s1W / 2, s1Y + shelfH / 2, s1W, shelfH, { isStatic: true, label: 'shelf1' }),
+  Bodies.rectangle(s2X + s2W / 2, s2Y + shelfH / 2, s2W, shelfH, { isStatic: true, label: 'shelf2' }),
+  Bodies.rectangle(s3X + s3W / 2, s3Y + shelfH / 2, s3W, shelfH, { isStatic: true, label: 'shelf3' }),
+];
+
 Composite.clear(engine.world, false);
-Composite.add(engine.world, [player, ...walls]);
+Composite.add(engine.world, [player, ...walls, ...shelfBodies]);
 
 let last = performance.now();
 let rafId;
+// inicjalizacja gry
+scoreRef.current = 0;
+spawnedRef.current = 0;
+gameOverRef.current = false;
+endTimeRef.current = performance.now() + 60_000;
+
+// Pomocnicze: tworzenie doniczki na górze w losowym X
+const spawnPot = () => {
+  if (gameOverRef.current) return;
+  if (spawnedRef.current >= 20) return;
+  const size = 28;
+  const minX = size / 2 + 20;
+  const maxX = W - size / 2 - 20;
+  const x = Math.random() * (maxX - minX) + minX;
+  // Spawnuj TUŻ W ŚRODKU planszy (poniżej górnej ściany), żeby było widać
+  const y = size / 2 + 2;
+  const pot = Bodies.rectangle(x, y, size, size, {
+    restitution: 0.2,
+    friction: 0.8,
+    angle: 0,
+    chamfer: { radius: 4 }
+  });
+  pot.label = 'pot';
+  Composite.add(engine.world, pot);
+  potRef.current = { body: pot, size, tipped: false, tippedAt: 0 };
+  spawnedRef.current += 1;
+};
+
+// Start – pierwsza doniczka
+spawnPot();
+
+// Reakcja kolizji: kot uderza w doniczkę → przewróć i zaplanuj usunięcie
+Events.on(engine, 'collisionStart', (evt) => {
+  if (!potRef.current?.body) return;
+  const potBody = potRef.current.body;
+  evt.pairs.forEach((p) => {
+    const a = p.bodyA;
+    const b = p.bodyB;
+    const hit =
+      (a === player && b === potBody) ||
+      (b === player && a === potBody);
+    if (hit && !potRef.current.tipped) {
+      const dir = player.position.x < potBody.position.x ? 1 : -1;
+      Body.applyForce(potBody, potBody.position, { x: dir * 0.02, y: -0.01 });
+      Body.setAngularVelocity(potBody, dir * 0.6);
+      potRef.current.tipped = true;
+      potRef.current.tippedAt = performance.now();
+    }
+  });
+});
 
 const loop = (now) => {
   const dt = Math.min(0.033, (now - last) / 1000); // max 33ms
@@ -341,14 +431,34 @@ const loop = (now) => {
   xRef.current = player.position.x - 16;
   yRef.current = player.position.y - 16;
 
-  // kolizja z doniczką (AABB jak wcześniej)
-  const t = targetRef.current;
-  if (overlaps(xRef.current, yRef.current, 32, t.x, t.y, t.size)) {
-    t.x = Math.floor(Math.random() * (canvas.width  - t.size));
-    t.y = Math.floor(Math.random() * (canvas.height - t.size));
+  // Doniczka: ręczne „opadanie”, usuwanie po przewróceniu i spawn nowej
+  if (potRef.current?.body) {
+    const potBody = potRef.current.body;
+    // proste opadanie: delikatna siła w dół zamiast nadpisywania prędkości
+    Body.applyForce(potBody, potBody.position, { x: 0, y: 0.002 });
+    // jeśli przewrócona – po krótkim czasie zalicz, usuń i spawn kolejnej
+    if (potRef.current.tipped && performance.now() - potRef.current.tippedAt > 400) {
+      scoreRef.current += 1;
+      Composite.remove(engine.world, potBody);
+      potRef.current = null;
+      if (spawnedRef.current < 20 && performance.now() < endTimeRef.current) {
+        spawnPot();
+      }
+    }
+  } else {
+    // jeśli nie ma doniczki, a czas i limit pozwalają – spawn
+    if (spawnedRef.current < 20 && performance.now() < endTimeRef.current) {
+      spawnPot();
+    }
   }
 
+  // rysowanie sceny i HUD
   drawCat(ctx, xRef.current, yRef.current);
+  const timeLeft = endTimeRef.current - performance.now();
+  drawHud(ctx, timeLeft);
+  if (timeLeft <= 0 || scoreRef.current >= 20) {
+    gameOverRef.current = true;
+  }
   rafId = requestAnimationFrame(loop);
 };
 
