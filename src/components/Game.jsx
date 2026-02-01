@@ -315,6 +315,22 @@ drawClock(ctx);
     ctx.fillText(`Time: ${secs}s`, 10, 28);
   };
 
+  const drawGameOver = (ctx) => {
+    const W = ctx.canvas.width;
+    const H = ctx.canvas.height;
+    ctx.fillStyle = 'rgba(0,0,0,0.35)';
+    ctx.fillRect(0, 0, W, H);
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 36px system-ui, -apple-system, Segoe UI, Roboto';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('GAME OVER', W / 2, H / 2 - 10);
+    ctx.font = '18px system-ui, -apple-system, Segoe UI, Roboto';
+    ctx.fillText(`Score: ${scoreRef.current} / 20`, W / 2, H / 2 + 24);
+    ctx.textAlign = 'start';
+    ctx.textBaseline = 'alphabetic';
+  };
+
   useEffect(() => {
     const canvas = canvasRef.current;
     const ctx = canvas.getContext('2d');
@@ -458,6 +474,7 @@ const loop = (now) => {
   drawHud(ctx, timeLeft);
   if (timeLeft <= 0 || scoreRef.current >= 20) {
     gameOverRef.current = true;
+    drawGameOver(ctx);
   }
   rafId = requestAnimationFrame(loop);
 };
