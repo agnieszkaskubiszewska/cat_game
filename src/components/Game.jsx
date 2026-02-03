@@ -22,7 +22,7 @@ export default function Game() {
     const H = ctx.canvas.height;
     const floorY = Math.floor(H * 0.66);
     const baseboardH = Math.max(2, Math.floor(H * 0.006));
-    ctx.fillStyle = '#FDF2E9';
+ctx.fillStyle = '#C39BFF';
     ctx.fillRect(0, floorY - baseboardH, W, baseboardH);
   };
 
@@ -36,7 +36,7 @@ export default function Game() {
     const wall = ctx.createLinearGradient(0, 0, 0, floorY - baseboardH);
     wall.addColorStop(0,   '#FFD6E8'); // pink
     wall.addColorStop(0.5, '#CDEAFB'); // baby blue
-    wall.addColorStop(1,   '#C39BFF'); // soft purple
+wall.addColorStop(1,   '#C39BFF'); // soft purple
     ctx.fillStyle = wall;
     ctx.fillRect(0, 0, W, floorY - baseboardH);
 
