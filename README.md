@@ -1,16 +1,39 @@
-# React + Vite
+# Cat Game — built just for fun
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A tiny React + Vite game where you move a cat around a cozy room. Using Matter.js, plant pots are physical objects: bump them to tip them over; a new one drops from the top. I made this for fun and to practice canvas drawing and basic 2D physics.
 
-Currently, two official plugins are available:
+Repository: https://github.com/agnieszkaskubiszewska/cat_game
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Gameplay
+- You have 60 seconds.
+- Up to 20 pots appear (one after another).
+- Hit a pot with the cat to tip it and score a point.
+- Pots can land on shelves — you can still knock them off.
+- After tipping, the pot disappears and the next one drops in.
 
-## React Compiler
+## Controls
+- Arrow keys or WASD — move the cat.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Tech stack
+- React + Vite
+- Canvas 2D (background, room elements, HUD)
+- Matter.js (physics bodies: cat, walls, pots, shelves; collision handling)
 
-## Expanding the ESLint configuration
+## Run locally
+```bash
+npm install
+npm run dev
+```
+Open the URL shown in the terminal (usually `http://localhost:5173`).
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## Structure
+- `src/components/Game.jsx` — game loop, rendering, physics.
+- `src/App.jsx` — app entry wiring.
+- `src/App.css` — basic styles.
+
+## Notes
+- Canvas uses its own coordinate system; Matter.js updates body positions and the frame draws their current state every tick.
+- Pots spawn at random X and “fall”; when hit by the cat they get a spin impulse, then after a short delay they’re counted and despawned.
+- HUD shows current score and remaining time.
+
+Have fun! 🙂 I built this just for fun and learning.
